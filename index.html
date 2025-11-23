@@ -9,6 +9,43 @@
   gtag('js', new Date());
 
   gtag('config', 'G-351TC07V9T');
+  
+      // --- logging & contador global (Google Apps Script) ---
+    const LOG_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzXqEBNFTcWAr3LEpNVg3g19c5MLMfvyPhlopEZ85OoV8Jq4ILrFns5hD68DvvxFibx/exec';
+
+    async function registerUseOnce() {
+      try {
+        // não contar o mesmo browser muitas vezes
+        if (localStorage.getItem('clownsCalculatorLogged') === '1') {
+          return;
+        }
+
+        const res = await fetch(LOG_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event: 'open' })
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const total = data.total;
+
+        const el = document.getElementById('usage-counter');
+        if (el && typeof total === 'number') {
+          el.textContent = total.toString();
+        }
+
+        // marcar que este browser já foi contado
+        localStorage.setItem('clownsCalculatorLogged', '1');
+      } catch (err) {
+        console.error('Erro ao registar uso:', err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      registerUseOnce();
+    });
 </script>
 <!-- End Google Analytics -->
   <meta charset="UTF-8" />
@@ -571,6 +608,7 @@
   </script>
 </body>
 </html>
+
 
 
 
