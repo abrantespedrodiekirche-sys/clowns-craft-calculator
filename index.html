@@ -9,43 +9,6 @@
   gtag('js', new Date());
 
   gtag('config', 'G-351TC07V9T');
-  
-      // --- logging & contador global (Google Apps Script) ---
-    const LOG_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzXqEBNFTcWAr3LEpNVg3g19c5MLMfvyPhlopEZ85OoV8Jq4ILrFns5hD68DvvxFibx/exec';
-
-    async function registerUseOnce() {
-      try {
-        // não contar o mesmo browser muitas vezes
-        if (localStorage.getItem('clownsCalculatorLogged') === '1') {
-          return;
-        }
-
-        const res = await fetch(LOG_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ event: 'open' })
-        });
-
-        if (!res.ok) return;
-
-        const data = await res.json();
-        const total = data.total;
-
-        const el = document.getElementById('usage-counter');
-        if (el && typeof total === 'number') {
-          el.textContent = total.toString();
-        }
-
-        // marcar que este browser já foi contado
-        localStorage.setItem('clownsCalculatorLogged', '1');
-      } catch (err) {
-        console.error('Erro ao registar uso:', err);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      registerUseOnce();
-    });
 </script>
 <!-- End Google Analytics -->
   <meta charset="UTF-8" />
@@ -374,261 +337,235 @@
       </section>
     </div>
 
-<div class="footer-note">
-  <span>
-    Só podes escrever nas caixas a <strong>verde</strong>. Se tiveres por exemplo uma carrinha com
-    50 cobre e outra com 68 cobre, não precisas de fazer as contas – escreve
-    <strong>50+68</strong> e a calculadora soma por ti.
-  </span>
-  <span class="small">
-    Até agora <strong><span id="usage-counter">0</span> players</strong> já usaram a Clowns Craft Calculator.
-  </span>
-</div>
-
+    <div class="footer-note">
+      <span>
+        Só podes escrever nas caixas a <strong>verde</strong>. Se tiveres por exemplo uma carrinha com
+        50 cobre e outra com 68 cobre, não precisas de fazer as contas – escreve
+        <strong>50+68</strong> e a calculadora soma por ti.
+      </span>
+    </div>
+  </div>
 
   <script>
-  const materials = ["Carvao", "Ferro", "Prata", "Cobre", "Ouro", "Aluminio", "Borracha"];
-  const parts = ["Ferro", "Gatilho", "Mola", "Engrenagem", "Cano", "Corp"];
+    // --- dados base, copiados da tua folha Excel ---
 
-  // quantas pepitas de cada material são precisas por cada peça
-  const materialPerPart = {
-    Ferro:      { Carvao: 8,  Ferro: 20, Prata: 40, Cobre: 20, Ouro: 0,  Aluminio: 0,  Borracha: 0 },
-    Gatilho:    { Carvao: 8,  Ferro: 0,  Prata: 0,  Cobre: 0,  Ouro: 80, Aluminio: 0,  Borracha: 0 },
-    Mola:       { Carvao: 8,  Ferro: 0,  Prata: 20, Cobre: 0,  Ouro: 40, Aluminio: 0,  Borracha: 2 },
-    Engrenagem: { Carvao: 8,  Ferro: 0,  Prata: 0,  Cobre: 40, Ouro: 0,  Aluminio: 0,  Borracha: 2 },
-    Cano:       { Carvao: 8,  Ferro: 20, Prata: 20, Cobre: 0,  Ouro: 0,  Aluminio: 0,  Borracha: 0 },
-    Corp:       { Carvao: 8,  Ferro: 40, Prata: 0,  Cobre: 0,  Ouro: 0,  Aluminio: 40, Borracha: 0 }
-  };
+    const materials = ["Carvao", "Ferro", "Prata", "Cobre", "Ouro", "Aluminio", "Borracha"];
+    const parts = ["Ferro", "Gatilho", "Mola", "Engrenagem", "Cano", "Corp"];
 
-  // quantas peças de cada tipo precisa cada arma
-  const weaponParts = {
-    Scar:      { Ferro: 1, Gatilho: 1, Mola: 1, Engrenagem: 1, Cano: 1, Corp: 1 },
-    Revolver:  { Ferro: 1, Gatilho: 1, Mola: 1, Engrenagem: 1, Cano: 1, Corp: 1 },
-    Musket:    { Ferro: 1, Gatilho: 1, Mola: 1, Engrenagem: 1, Cano: 1, Corp: 1 },
-    QBZ:       { Ferro: 1, Gatilho: 1, Mola: 1, Engrenagem: 0, Cano: 1, Corp: 1 }
-  };
+    // quantas pepitas de cada material são precisas por cada peça
+    // (Info!B4:H9)
+    const materialPerPart = {
+      Ferro:      { Carvao: 8,  Ferro: 20, Prata: 40, Cobre: 20, Ouro: 0,  Aluminio: 0,  Borracha: 0 },
+      Gatilho:    { Carvao: 8,  Ferro: 0,  Prata: 0,  Cobre: 0,  Ouro: 80, Aluminio: 0,  Borracha: 0 },
+      Mola:       { Carvao: 8,  Ferro: 0,  Prata: 20, Cobre: 0,  Ouro: 40, Aluminio: 0,  Borracha: 2 },
+      Engrenagem: { Carvao: 8,  Ferro: 0,  Prata: 0,  Cobre: 40, Ouro: 0,  Aluminio: 0,  Borracha: 2 },
+      Cano:       { Carvao: 8,  Ferro: 20, Prata: 20, Cobre: 0,  Ouro: 0,  Aluminio: 0,  Borracha: 0 },
+      Corp:       { Carvao: 8,  Ferro: 40, Prata: 0,  Cobre: 0,  Ouro: 0,  Aluminio: 40, Borracha: 0 }
+    };
 
-  function pepitasToBars(material, pepitas) {
-    if (material === "Carvao" || material === "Borracha") {
-      return pepitas;
-    }
-    return pepitas / 10;
-  }
+    // quantas peças de cada tipo precisa cada arma (Info!B15:G18)
+    const weaponParts = {
+      Scar:      { Ferro: 1, Gatilho: 1, Mola: 1, Engrenagem: 1, Cano: 1, Corp: 1 },
+      Revolver:  { Ferro: 1, Gatilho: 1, Mola: 1, Engrenagem: 1, Cano: 1, Corp: 1 },
+      Musket:    { Ferro: 1, Gatilho: 1, Mola: 1, Engrenagem: 1, Cano: 1, Corp: 1 },
+      QBZ:       { Ferro: 1, Gatilho: 1, Mola: 1, Engrenagem: 0, Cano: 1, Corp: 1 } // Engrenagem = 0 no Excel
+    };
 
-  function parseAmount(str) {
-    if (!str) return 0;
-    const parts = str.split("+");
-    let total = 0;
-    for (const p of parts) {
-      const n = parseFloat(p.trim().replace(",", "."));
-      if (!isNaN(n)) total += n;
-    }
-    return total;
-  }
-
-  function formatNumber(n) {
-    if (Math.abs(n) < 0.00001) return "0";
-    if (Number.isInteger(n)) return n.toString();
-    return n.toFixed(1);
-  }
-
-  const partsBody = document.getElementById("parts-body");
-  const pepitasBody = document.getElementById("pepitas-body");
-  const refinedBody = document.getElementById("refined-body");
-
-  function buildStaticRows() {
-    // peças
-    parts.forEach(part => {
-      const tr = document.createElement("tr");
-      const tdName = document.createElement("td");
-      const tdTotal = document.createElement("td");
-      tdName.textContent = part;
-      tdTotal.innerHTML = '<span class="result-number" data-part="' + part + '">0</span>';
-      tr.appendChild(tdName);
-      tr.appendChild(tdTotal);
-      partsBody.appendChild(tr);
-    });
-
-    // pepitas
-    materials.forEach(mat => {
-      const tr = document.createElement("tr");
-
-      const tdName = document.createElement("td");
-      tdName.textContent = mat;
-
-      const tdNeed = document.createElement("td");
-      tdNeed.innerHTML = '<span class="result-number" data-pepitas-need="' + mat + '">0</span>';
-
-      const tdHave = document.createElement("td");
-      const input = document.createElement("input");
-      input.className = "input green";
-      input.placeholder = "ex: 50+68";
-      input.setAttribute("data-pepitas-have-input", mat);
-      tdHave.appendChild(input);
-
-      const tdDiff = document.createElement("td");
-      tdDiff.innerHTML = '<span class="result-number" data-pepitas-diff="' + mat + '">0</span>';
-
-      tr.appendChild(tdName);
-      tr.appendChild(tdNeed);
-      tr.appendChild(tdHave);
-      tr.appendChild(tdDiff);
-      pepitasBody.appendChild(tr);
-    });
-
-    // barras
-    materials.forEach(mat => {
-      const tr = document.createElement("tr");
-
-      const tdName = document.createElement("td");
-      tdName.textContent = mat;
-
-      const tdNeed = document.createElement("td");
-      tdNeed.innerHTML = '<span class="result-number" data-bars-need="' + mat + '">0</span>';
-
-      const tdHave = document.createElement("td");
-      const input = document.createElement("input");
-      input.className = "input green";
-      input.placeholder = "ex: 3+7";
-      input.setAttribute("data-bars-have-input", mat);
-      tdHave.appendChild(input);
-
-      const tdDiff = document.createElement("td");
-      tdDiff.innerHTML = '<span class="result-number" data-bars-diff="' + mat + '">0</span>';
-
-      tr.appendChild(tdName);
-      tr.appendChild(tdNeed);
-      tr.appendChild(tdHave);
-      tr.appendChild(tdDiff);
-      refinedBody.appendChild(tr);
-    });
-  }
-
-  buildStaticRows();
-
-  function recalc() {
-    const weaponCounts = {};
-    for (const name of Object.keys(weaponParts)) {
-      const input = document.getElementById("q-" + name);
-      weaponCounts[name] = input ? Math.max(0, parseInt(input.value || "0", 10)) : 0;
-    }
-
-    const totalParts = {};
-    parts.forEach(p => totalParts[p] = 0);
-
-    for (const [weapon, partsNeeded] of Object.entries(weaponParts)) {
-      const q = weaponCounts[weapon] || 0;
-      for (const [partName, qtyPerWeapon] of Object.entries(partsNeeded)) {
-        totalParts[partName] += q * qtyPerWeapon;
+    // Carvao e Borracha: 1:1. Restantes: 10 pepitas = 1 barra (igual ao teu Excel).
+    function pepitasToBars(material, pepitas) {
+      if (material === "Carvao" || material === "Borracha") {
+        return pepitas;
       }
+      return pepitas / 10;
     }
 
-    document.querySelectorAll("[data-part]").forEach(span => {
-      const partName = span.getAttribute("data-part");
-      span.textContent = totalParts[partName] || 0;
-    });
-
-    const pepitasNeed = {};
-    materials.forEach(m => pepitasNeed[m] = 0);
-
-    for (const [partName, totalPartQty] of Object.entries(totalParts)) {
-      const map = materialPerPart[partName];
-      if (!map) continue;
-      for (const mat of materials) {
-        const perPiece = map[mat] || 0;
-        pepitasNeed[mat] += totalPartQty * perPiece;
+    // parse "50+68+10" -> 128
+    function parseAmount(str) {
+      if (!str) return 0;
+      const parts = str.split("+");
+      let total = 0;
+      for (const p of parts) {
+        const n = parseFloat(p.trim().replace(",", "."));
+        if (!isNaN(n)) total += n;
       }
+      return total;
     }
 
-    document.querySelectorAll("[data-pepitas-need]").forEach(span => {
-      const mat = span.getAttribute("data-pepitas-need");
-      span.textContent = formatNumber(pepitasNeed[mat] || 0);
-    });
+    function formatNumber(n) {
+      if (Math.abs(n) < 0.00001) return "0";
+      if (Number.isInteger(n)) return n.toString();
+      return n.toFixed(1);
+    }
 
-    const barsNeed = {};
-    materials.forEach(mat => {
-      barsNeed[mat] = pepitasToBars(mat, pepitasNeed[mat] || 0);
-    });
+    // construir linhas da tabela (pepitas / barras / peças)
+    const partsBody = document.getElementById("parts-body");
+    const pepitasBody = document.getElementById("pepitas-body");
+    const refinedBody = document.getElementById("refined-body");
 
-    document.querySelectorAll("[data-bars-need]").forEach(span => {
-      const mat = span.getAttribute("data-bars-need");
-      span.textContent = formatNumber(barsNeed[mat] || 0);
-    });
-
-    const pepitasHave = {};
-    const barsHave = {};
-
-    materials.forEach(mat => {
-      const pepInput = document.querySelector('[data-pepitas-have-input="' + mat + '"]');
-      const barInput = document.querySelector('[data-bars-have-input="' + mat + '"]');
-      pepitasHave[mat] = parseAmount(pepInput ? pepInput.value : "");
-      barsHave[mat]   = parseAmount(barInput ? barInput.value : "");
-    });
-
-    document.querySelectorAll("[data-pepitas-diff]").forEach(span => {
-      const mat = span.getAttribute("data-pepitas-diff");
-      const diff = pepitasHave[mat] - (pepitasNeed[mat] || 0);
-      span.textContent = formatNumber(diff);
-      span.classList.remove("negative", "positive");
-      if (diff < 0) span.classList.add("negative");
-      if (diff > 0) span.classList.add("positive");
-    });
-
-    document.querySelectorAll("[data-bars-diff]").forEach(span => {
-      const mat = span.getAttribute("data-bars-diff");
-      const diff = barsHave[mat] - (barsNeed[mat] || 0);
-      span.textContent = formatNumber(diff);
-      span.classList.remove("negative", "positive");
-      if (diff < 0) span.classList.add("negative");
-      if (diff > 0) span.classList.add("positive");
-    });
-  }
-
-  // --- logging & contador global (Google Apps Script) ---
-
-  const LOG_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzXqEBNFTcWAr3LEpNVg3g19c5MLMfvyPhlopEZ85OoV8Jq4ILrFns5hD68DvvxFibx/exec';
-
-  async function registerUseOnce() {
-    try {
-      if (localStorage.getItem('clownsCalculatorLogged') === '1') {
-        return;
-      }
-
-      const res = await fetch(LOG_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event: 'open' })
+    function buildStaticRows() {
+      // peças
+      parts.forEach(part => {
+        const tr = document.createElement("tr");
+        const tdName = document.createElement("td");
+        const tdTotal = document.createElement("td");
+        tdName.textContent = part;
+        tdTotal.innerHTML = '<span class="result-number" data-part="' + part + '">0</span>';
+        tr.appendChild(tdName);
+        tr.appendChild(tdTotal);
+        partsBody.appendChild(tr);
       });
 
-      if (!res.ok) return;
+      // pepitas
+      materials.forEach(mat => {
+        const tr = document.createElement("tr");
 
-      const data = await res.json();
-      const total = data.total;
+        const tdName = document.createElement("td");
+        tdName.textContent = mat;
 
-      const el = document.getElementById('usage-counter');
-      if (el && typeof total === 'number') {
-        el.textContent = total.toString();
+        const tdNeed = document.createElement("td");
+        tdNeed.innerHTML = '<span class="result-number" data-pepitas-need="' + mat + '">0</span>';
+
+        const tdHave = document.createElement("td");
+        const input = document.createElement("input");
+        input.className = "input green";
+        input.placeholder = "ex: 50+68";
+        input.setAttribute("data-pepitas-have-input", mat);
+        tdHave.appendChild(input);
+
+        const tdDiff = document.createElement("td");
+        tdDiff.innerHTML = '<span class="result-number" data-pepitas-diff="' + mat + '">0</span>';
+
+        tr.appendChild(tdName);
+        tr.appendChild(tdNeed);
+        tr.appendChild(tdHave);
+        tr.appendChild(tdDiff);
+        pepitasBody.appendChild(tr);
+      });
+
+      // refined / barras
+      materials.forEach(mat => {
+        const tr = document.createElement("tr");
+
+        const tdName = document.createElement("td");
+        tdName.textContent = mat;
+
+        const tdNeed = document.createElement("td");
+        tdNeed.innerHTML = '<span class="result-number" data-bars-need="' + mat + '">0</span>';
+
+        const tdHave = document.createElement("td");
+        const input = document.createElement("input");
+        input.className = "input green";
+        input.placeholder = "ex: 3+7";
+        input.setAttribute("data-bars-have-input", mat);
+        tdHave.appendChild(input);
+
+        const tdDiff = document.createElement("td");
+        tdDiff.innerHTML = '<span class="result-number" data-bars-diff="' + mat + '">0</span>';
+
+        tr.appendChild(tdName);
+        tr.appendChild(tdNeed);
+        tr.appendChild(tdHave);
+        tr.appendChild(tdDiff);
+        refinedBody.appendChild(tr);
+      });
+    }
+
+    buildStaticRows();
+
+    function recalc() {
+      // ler quantidades de armas
+      const weaponCounts = {};
+      for (const name of Object.keys(weaponParts)) {
+        const input = document.getElementById("q-" + name);
+        weaponCounts[name] = input ? Math.max(0, parseInt(input.value || "0", 10)) : 0;
       }
 
-      localStorage.setItem('clownsCalculatorLogged', '1');
-    } catch (err) {
-      console.error('Erro ao registar uso:', err);
-    }
-  }
+      // total de peças
+      const totalParts = {};
+      parts.forEach(p => totalParts[p] = 0);
 
-  document.addEventListener('DOMContentLoaded', () => {
-    recalc();
+      for (const [weapon, partsNeeded] of Object.entries(weaponParts)) {
+        const q = weaponCounts[weapon] || 0;
+        for (const [partName, qtyPerWeapon] of Object.entries(partsNeeded)) {
+          totalParts[partName] += q * qtyPerWeapon;
+        }
+      }
+
+      // actualizar UI das peças
+      document.querySelectorAll("[data-part]").forEach(span => {
+        const partName = span.getAttribute("data-part");
+        span.textContent = totalParts[partName] || 0;
+      });
+
+      // total pepitas necessárias por material
+      const pepitasNeed = {};
+      materials.forEach(m => pepitasNeed[m] = 0);
+
+      for (const [partName, totalPartQty] of Object.entries(totalParts)) {
+        const map = materialPerPart[partName];
+        if (!map) continue;
+        for (const mat of materials) {
+          const perPiece = map[mat] || 0;
+          pepitasNeed[mat] += totalPartQty * perPiece;
+        }
+      }
+
+      // actualizar pepitas necessárias
+      document.querySelectorAll("[data-pepitas-need]").forEach(span => {
+        const mat = span.getAttribute("data-pepitas-need");
+        span.textContent = formatNumber(pepitasNeed[mat] || 0);
+      });
+
+      // calcular barras necessárias
+      const barsNeed = {};
+      materials.forEach(mat => {
+        barsNeed[mat] = pepitasToBars(mat, pepitasNeed[mat] || 0);
+      });
+
+      document.querySelectorAll("[data-bars-need]").forEach(span => {
+        const mat = span.getAttribute("data-bars-need");
+        span.textContent = formatNumber(barsNeed[mat] || 0);
+      });
+
+      // ler o que o jogador já tem (pepitas / barras)
+      const pepitasHave = {};
+      const barsHave = {};
+
+      materials.forEach(mat => {
+        const pepInput = document.querySelector('[data-pepitas-have-input="' + mat + '"]');
+        const barInput = document.querySelector('[data-bars-have-input="' + mat + '"]');
+        pepitasHave[mat] = parseAmount(pepInput ? pepInput.value : "");
+        barsHave[mat]   = parseAmount(barInput ? barInput.value : "");
+      });
+
+      // diferenças
+      document.querySelectorAll("[data-pepitas-diff]").forEach(span => {
+        const mat = span.getAttribute("data-pepitas-diff");
+        const diff = pepitasHave[mat] - (pepitasNeed[mat] || 0);
+        span.textContent = formatNumber(diff);
+        span.classList.remove("negative", "positive");
+        if (diff < 0) span.classList.add("negative");
+        if (diff > 0) span.classList.add("positive");
+      });
+
+      document.querySelectorAll("[data-bars-diff]").forEach(span => {
+        const mat = span.getAttribute("data-bars-diff");
+        const diff = barsHave[mat] - (barsNeed[mat] || 0);
+        span.textContent = formatNumber(diff);
+        span.classList.remove("negative", "positive");
+        if (diff < 0) span.classList.add("negative");
+        if (diff > 0) span.classList.add("positive");
+      });
+    }
+
+    // listeners: quando alterar armas ou inputs verdes
     document.querySelectorAll(".input.green").forEach(input => {
       input.addEventListener("input", recalc);
     });
-    registerUseOnce();
-  });
-</script>
 
+    // primeira conta
+    recalc();
+  </script>
 </body>
 </html>
-
-
-
-
 
